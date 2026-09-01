@@ -35,7 +35,7 @@ jobs:
       nodejs: ${{ steps.filter.outputs.nodejs }}
     steps:
       - name: 🧱 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: 🔍 Detect relevant changes
         if: github.event_name == 'pull_request'
         uses: dorny/paths-filter@v4
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: 🧱 Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
