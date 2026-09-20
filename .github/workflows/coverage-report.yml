@@ -46,7 +46,7 @@ jobs:
 
       - name: 🪙 Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aws-actions/configure-aws-credentials@v6.2.3
+        uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -124,7 +124,7 @@ jobs:
 
       - name: 🪙 Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aws-actions/configure-aws-credentials@v6.2.3
+        uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -134,7 +134,7 @@ jobs:
           set -o pipefail
           mkdir -p output
           dotnet-coverage collect \
-            "dotnet test src/sdks/dotnet/Envilder.sln --configuration Release --logger:console;verbosity=detailed" \
+            "dotnet test --solution src/sdks/dotnet/Envilder.sln --configuration Release --output Detailed" \
             --output output/dotnet.cobertura.xml \
             --output-format cobertura 2>&1 | tee output/test-output.txt
         env:
@@ -190,7 +190,7 @@ jobs:
 
       - name: 🪙 Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aws-actions/configure-aws-credentials@v6.2.3
+        uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -261,7 +261,7 @@ jobs:
 
       - name: 🪙 Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aws-actions/configure-aws-credentials@v6.2.3
+        uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
