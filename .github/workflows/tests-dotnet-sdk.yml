@@ -34,7 +34,7 @@ jobs:
       dotnet: ${{ steps.filter.outputs.dotnet }}
     steps:
       - name: 🧱 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: 🔍 Detect relevant changes
         if: github.event_name == 'pull_request'
         uses: dorny/paths-filter@v4
@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: 🧱 Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: 🛠️ Setup .NET
         uses: actions/setup-dotnet@v6
@@ -135,7 +135,7 @@ jobs:
           echo "- status = ${{needs.test-dotnet-sdk.outputs.status}}"
           echo "::endgroup::"
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - uses: actions/download-artifact@v8
         with:
