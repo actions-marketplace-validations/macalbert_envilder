@@ -1,4 +1,81 @@
-## [Unreleased]
+## [0.17.1] - 2026-10-27
+
+### Fixed
+
+* **Accept `/` in map-file keys again**: A hierarchical name such as
+  `Database/Password` is valid again, as it was before 0.14.0. The Action
+  writes it to the `.env` file as-is and logs a warning with the names
+  affected, because `dotenv` for Node.js, Docker Compose and POSIX shells
+  skip that line ([#511](https://github.com/macalbert/envilder/issues/511))
+
+---
+
+## [0.17.0] - 2026-10-27
+
+### Security
+
+* **Reject `__proto__` in map files in the Action bundle**: The bundle is
+  built from the compiled CLI core, where an own `__proto__` map-file key
+  was dropped before the name check, so the Action accepted the file and
+  silently skipped that mapping. The key is now rejected with the
+  documented message, failing the step
+  ([#511](https://github.com/macalbert/envilder/issues/511))
+
+### Changed
+
+* **BREAKING: Azure Key Vault references only translate `/`**: The Action
+  shares the CLI's rule: `/` becomes `-`, ignoring leading slashes, and
+  anything else reaches Key Vault as written, as the SDKs do. A reference
+  with `_` (`/myapp/prod/stripe_key`) is no longer rewritten to
+  `myapp-prod-stripe-key`; use the name the vault holds
+
+---
+
+## [0.16.0] - 2026-10-25
+
+### Changed
+
+* **Shared single-secret push handler records the mapping**: The handler the
+  Action bundle shares with the CLI now also writes the map file during a
+  CLI single-secret push. The Action never runs a single-secret push, so its
+  pull flow, inputs and outputs are unchanged
+
+---
+
+## [0.15.1] - 2026-10-22
+
+### Security
+
+* Update development and build dependencies to resolve open advisories
+  (`undici`, `brace-expansion`, `@grpc/grpc-js`, `@vitest/mocker`). The
+  Action bundle and its runtime dependencies are unchanged
+  ([#609](https://github.com/macalbert/envilder/pull/609))
+
+---
+
+## [0.15.0] - 2026-10-16
+
+### Changed
+
+* **Shared secret masker can report when registrations are written**: The
+  masker the Action shares with the CLI gained an internal capability to
+  report when its `::add-mask::` writes have completed, used by the new
+  CLI-only `envilder exec` command. The Action's pull flow does not use it,
+  and the registrations it prints are unchanged
+  ([#550](https://github.com/macalbert/envilder/issues/550))
+
+---
+
+## [0.14.0] - 2026-09-26
+
+### Fixed
+
+* **Preserve secret values when writing `.env` files**: Values with hashes,
+  leading or trailing whitespace, quotes, backslashes or line breaks now
+  round-trip exactly, and updating a multi-line value no longer leaves the
+  rest of the old secret in the file. Unchanged assignments are kept byte for
+  byte, and a write that would not read back correctly aborts, naming only
+  the affected keys ([#515](https://github.com/macalbert/envilder/pull/515))
 
 ### Security
 
@@ -18,6 +95,12 @@
   silently never loaded. It is now rejected at map-file ingestion with an
   explicit message ([#511](https://github.com/macalbert/envilder/issues/511))
 
+### Documentation
+
+* **Point the README "Learn more" link at the Action docs**: It now lands on
+  `envilder.com/docs/github-action/` with UTM tags, so visits from the Action
+  README to envilder.com can be measured
+
 ---
 
 ## [0.13.2] - 2026-08-14
@@ -35,6 +118,13 @@
 
 ## [0.13.1] - 2026-07-31
 
+### Added
+
+* **GitHub Marketplace listing and root reference**: A root `action.yml`
+  publishes the Action to the GitHub Marketplace and lets workflows use it as
+  `macalbert/envilder@<version>`. The `macalbert/envilder/github-action@v0`
+  reference keeps working.
+
 ### Changed
 
 * **Bundle the GitHub Action with esbuild**: Replace the ncc bundler so the
@@ -46,7 +136,7 @@
 
 ---
 
-## [0.13.0] - 2026-06-26
+## [0.13.0] - 2026-07-11
 
 ### Added
 
@@ -126,6 +216,18 @@
 
 ---
 
+## [0.11.1] - 2026-06-25
+
+### Fixed
+
+* **AWS SSO / assumed-role profiles now resolve correctly**: The bundled CLI
+  now resolves SSO, IAM Identity Center, and assumed-role profiles (via the
+  `profile` input or `$config.profile`) through the full AWS provider chain
+  instead of silently falling back to the default credentials
+  ([#364](https://github.com/macalbert/envilder/issues/364))
+
+---
+
 ## [0.11.0] - 2026-05-31
 
 ### Changed
@@ -188,7 +290,7 @@
 
 ---
 
-## [0.8.0] - 2026-03-22
+## [0.8.0] - 2026-03-26
 
 ### Added
 

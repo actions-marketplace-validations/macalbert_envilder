@@ -11,7 +11,7 @@ Part of the [Envilder](https://github.com/macalbert/envilder) project.
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - **AWS provider**: AWS credentials configured (CLI, environment variables, or IAM role)
 - **Azure provider**: Azure credentials via `az login`, managed identity, or environment variables
 
@@ -44,6 +44,38 @@ from envilder import Envilder
 
 secrets = Envilder.resolve_file('envilder.json')
 print(secrets['DB_PASSWORD'])
+```
+
+### Azure Key Vault
+
+Set the provider in the map file's `$config`; values are Key Vault secret names:
+
+```json
+{
+  "$schema": "https://envilder.com/schema/map-file.v1.json",
+  "$config": {
+    "provider": "azure",
+    "vaultUrl": "https://my-vault.vault.azure.net"
+  },
+  "DB_PASSWORD": "myapp-prod-db-password"
+}
+```
+
+Values are sent to Key Vault as written, except that slashes become hyphens: a path-style value
+such as `/myapp/prod/db-password` is read as `myapp-prod-db-password`, the same name the CLI pushes
+it under.
+
+The code is the same as for AWS. Credentials are resolved with `DefaultAzureCredential`
+(`az login`, managed identity, or environment variables):
+
+```python
+import os
+
+from envilder import Envilder
+
+Envilder.load('envilder.json')
+
+db_password = os.environ['DB_PASSWORD']
 ```
 
 ### Fluent builder (with overrides)
@@ -214,10 +246,34 @@ For Azure, add `vaultUrl`:
 }
 ```
 
+### Keys and values
+
+Keys follow the same rule as the CLI and the GitHub Action, so a key accepted by one is accepted by all:
+
+- **Keys** may only contain letters, digits, `_`, `.`, `-` and `/` (`^[A-Za-z0-9_./-]+$`); `__proto__`
+  is also rejected. `MapFileParser.parse` raises `ValueError` for any other key, before any secret is fetched.
+  `/` is allowed for hierarchical names (`Database/Password`) and returned as-is.
+- **Values** are the secret identifiers in the provider (SSM parameter name or Key Vault secret
+  name) and must be JSON strings.
+- **Secret contents** are returned exactly as the provider stores them. `resolve_file` / `resolve` keep them in
+  memory; `load` / `inject` write them to the process environment, where the operating system cannot
+  store `NUL` (`U+0000`) and Windows limits a variable to 32,767 characters.
+
+See [Keys and Values: What Is Accepted](https://github.com/macalbert/envilder#keys-and-values-what-is-accepted)
+for the full reference and the reasoning behind the rules.
+
+## Examples
+
+Runnable projects in [envilder-examples](https://github.com/macalbert/envilder-examples) resolve a map file
+against AWS SSM and Azure Key Vault (emulated with LocalStack and Lowkey Vault) and pass the values to
+containers, with no `.env` file:
+
+- [python-testcontainers](https://github.com/macalbert/envilder-examples/tree/main/python-testcontainers): pytest + Testcontainers
+
 ## Links
 
 - [Changelog](https://github.com/macalbert/envilder/blob/main/docs/changelogs/sdk-python.md)
-- [Official Website](https://envilder.com)
+- [Official Website](https://envilder.com/docs/sdks/python/?utm_source=pypi&utm_medium=readme)
 
 ## License
 

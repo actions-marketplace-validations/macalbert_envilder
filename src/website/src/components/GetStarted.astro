@@ -90,10 +90,20 @@ const t = useTranslations(lang);
             <span class="comment">{t.getStarted.commentCreate}</span>
           </span>
           <span class="line">
-            <span class="prompt">$</span>
-            <span class="command"> echo </span>
-            <span class="output">{`'{"API_KEY": "/app/api-key"}' `}</span>
-            <span class="command"> > envilder.json</span>
+            <span class="prompt">$</span><span class="command"> npx envilder</span><span class="flag"> --key</span><span class="output">=API_KEY</span><span class="flag"> --value</span><span class="output">=s3cret</span><span class="flag"> --secret-path</span><span class="output">=/app/api-key</span>
+          </span>
+          <span class="line">
+            <span class="highlight">✔</span>{' '}<span class="output">Created envilder.json</span>
+          </span>
+          <span class="line">&nbsp;</span>
+          <span class="line">
+            <span class="comment">{t.getStarted.commentExec}</span>
+          </span>
+          <span class="line">
+            <span class="prompt">$</span><span class="command"> npx envilder</span><span class="flag"> exec</span><span class="output"> --</span><span class="command"> npm start</span>
+          </span>
+          <span class="line">
+            <span class="output">envilder: 1 secret resolved (aws, profile=default) → npm …</span>
           </span>
           <span class="line">&nbsp;</span>
           <span class="line">
@@ -102,16 +112,8 @@ const t = useTranslations(lang);
           <span class="line">
             <span class="prompt">$</span><span class="command"> npx envilder</span>
           </span>
-          <span class="line">&nbsp;</span>
           <span class="line">
             <span class="highlight">✔</span>{' '}<span class="output">{t.getStarted.doneMessage}</span>
-          </span>
-          <span class="line">&nbsp;</span>
-          <span class="line">
-            <span class="comment">{t.getStarted.commentPush}</span>
-          </span>
-          <span class="line">
-            <span class="prompt">$</span><span class="command"> npx envilder</span><span class="flag"> --push</span><span class="flag"> --key</span><span class="command">=API_KEY</span><span class="flag"> --value</span><span class="command">=example-not-a-real-secret</span><span class="flag"> --secret-path</span><span class="command">=/app/api-key</span>
           </span>
         </TerminalMockup>
 
@@ -122,7 +124,7 @@ const t = useTranslations(lang);
           code={`import os\n\nfrom envilder import Envilder\n\nEnvilder.load("envilder.json")\n\n${t.getStarted.sdkComment3}\napi_key = os.environ["API_KEY"]`}
         />
         <a
-          href="https://github.com/macalbert/envilder/tree/main/examples/sdk"
+          href="https://github.com/macalbert/envilder-examples"
           target="_blank"
           rel="noopener noreferrer"
           class="sdk-example-link"
@@ -176,7 +178,7 @@ const t = useTranslations(lang);
   }
 
   .gs-step h3 {
-    font-size: 0.7rem;
+    font-size: clamp(1.1rem, 1.8vw, 1.25rem);
     margin-bottom: var(--space-md);
     color: var(--color-primary);
   }

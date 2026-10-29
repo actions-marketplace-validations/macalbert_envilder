@@ -10,12 +10,11 @@ markers = [
 ]
 filterwarnings = [
   "ignore::DeprecationWarning:testcontainers",
-  "ignore::urllib3.exceptions.InsecureRequestWarning",
 ]
 
 [tool.black]
 line-length = 79
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.isort]
 profile = "black"

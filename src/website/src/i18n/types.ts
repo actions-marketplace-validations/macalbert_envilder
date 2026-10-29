@@ -20,6 +20,7 @@ export interface NavLinks {
 export interface ThemeTranslations {
   retro: string;
   light: string;
+  cream: string;
   ariaTheme: string;
 }
 
@@ -35,10 +36,14 @@ export interface HeroTranslations {
   descSuffix: string;
   getStarted: string;
   viewOnGithub: string;
-  tabCli: string;
-  tabCliDesc: string;
-  tabSetup: string;
-  tabSetupDesc: string;
+  tabGroupCli: string;
+  tabGroupSdk: string;
+  tabPull: string;
+  tabPullDesc: string;
+  tabExec: string;
+  tabExecDesc: string;
+  tabPush: string;
+  tabPushDesc: string;
   tabNode: string;
   tabNodeDesc: string;
   tabPython: string;
@@ -47,14 +52,42 @@ export interface HeroTranslations {
   tabDotnetDesc: string;
   terminalComment1: string;
   terminalComment2: string;
+  execComment1: string;
+  execComment2: string;
   setupComment1: string;
   setupComment2: string;
+  setupAzureComment1: string;
   sdkCommentLoad: string;
   terminalSceneLabel: string;
+  terminalPause: string;
+  terminalPlay: string;
+  execMapComment: string;
 }
 
 export interface TrustTranslations {
   label: string;
+}
+
+export interface ProofTranslations {
+  ariaLabel: string;
+  stars: string;
+  npmMonthly: string;
+  pypiMonthly: string;
+  nugetTotal: string;
+  openssfBadge: string;
+  openssfLevel: string;
+  openssfLabel: string;
+}
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export interface FaqTranslations {
+  title: string;
+  titleAccent: string;
+  items: FaqItem[];
 }
 
 export type PixelSpriteName =
@@ -70,20 +103,6 @@ export type PixelSpriteName =
   | 'chart'
   | 'person';
 
-export interface ProblemItem {
-  icon: PixelSpriteName;
-  title: string;
-  description: string;
-}
-
-export interface ProblemSolutionTranslations {
-  title: string;
-  titleAccent: string;
-  titleSuffix: string;
-  subtitle: string;
-  problems: ProblemItem[];
-}
-
 export interface StepItem {
   title: string;
   description: string;
@@ -95,16 +114,9 @@ export interface HowItWorksTranslations {
   subtitle: string;
   stepLabel: string;
   steps: StepItem[];
-  terminalFetched1: string;
-  terminalFetched2: string;
-  terminalFetched3: string;
-  terminalWritten: string;
   sdkTabPython: string;
   sdkTabDotnet: string;
   sdkTabNodejs: string;
-  pushTerminalPushed1: string;
-  pushTerminalPushed2: string;
-  pushTerminalPushed3: string;
 }
 
 export interface FeatureItem {
@@ -114,29 +126,11 @@ export interface FeatureItem {
   badge?: string;
 }
 
-export interface FeatureExtraItem {
-  icon: PixelSpriteName;
-  title: string;
-  description: string;
-}
-
 export interface FeaturesTranslations {
   title: string;
   titleAccent: string;
   subtitle: string;
   highlights: FeatureItem[];
-  extras: FeatureExtraItem[];
-  extrasTitle: string;
-}
-
-export interface DemoTranslations {
-  title: string;
-  titleAccent: string;
-  subtitle: string;
-  cliDemo: string;
-  transcript: string;
-  ghaWorkflow: string;
-  comingSoon: string;
 }
 
 export interface ProvidersTranslations {
@@ -149,14 +143,12 @@ export interface ProvidersTranslations {
   azureTitle: string;
   azureBadge: string;
   azureFeatures: string[];
-  gcpTitle: string;
-  gcpBadge: string;
-  gcpFeatures: string[];
-  gcpRoadmapLink: string;
   configPriorityTitle: string;
   priorityHigh: string;
   priorityMid: string;
   priorityLow: string;
+  roadmapNote: string;
+  roadmapLink: string;
 }
 
 export interface GhaTranslations {
@@ -234,8 +226,8 @@ export interface GetStartedTranslations {
   step3: string;
   terminalTitle: string;
   commentCreate: string;
+  commentExec: string;
   commentPull: string;
-  commentPush: string;
   doneMessage: string;
   sdkComment3: string;
   sdkExampleLink: string;
@@ -253,6 +245,7 @@ export interface FooterTranslations {
   linkGettingStarted: string;
   linkPullCommand: string;
   linkPushCommand: string;
+  linkExecCommand: string;
   linkGithubAction: string;
   linkIssues: string;
   linkDiscussions: string;
@@ -293,7 +286,123 @@ export interface DocsPageTranslations {
   cardSummary: string;
 }
 
+export interface GettingStartedGuideTranslations {
+  tabAws: string;
+  tabAzure: string;
+  overviewTitle: string;
+  overviewSteps: string[];
+  prereqTitle: string;
+  prereqNode: string;
+  prereqAws: string;
+  prereqAwsLink: string;
+  prereqAzure: string;
+  prereqAzureLink: string;
+  prereqWrite: string;
+  installTitle: string;
+  installDesc: string;
+  installVerify: string;
+  secretTitle: string;
+  secretDesc: string;
+  secretAwsNote: string;
+  secretAzureNote: string;
+  mapTitle: string;
+  mapDesc: string;
+  mapNote: string;
+  runTitle: string;
+  runDesc: string;
+  runOutput: string;
+  runExplain: string;
+  runScriptDesc: string;
+  pullTitle: string;
+  pullDesc: string;
+  pullOutput: string;
+  pullWarn: string;
+  errorsTitle: string;
+  errorsIntro: string;
+  errNoMapTitle: string;
+  errNoMapFix: string;
+  errCredsTitle: string;
+  errCredsFix: string;
+  errDeniedTitle: string;
+  errDeniedFix: string;
+  errNotFoundTitle: string;
+  errNotFoundFix: string;
+  errVaultTitle: string;
+  errVaultFix: string;
+  errOrderTitle: string;
+  errOrderFix: string;
+  errEnvfileTitle: string;
+  errEnvfileFix: string;
+  nextTitle: string;
+  nextMap: string;
+  nextExec: string;
+  nextPull: string;
+}
+
+export interface MapFileReferenceTranslations {
+  prereqTitle: string;
+  prereqDesc: string;
+  structureTitle: string;
+  structureDesc: string;
+  thKey: string;
+  thMeaning: string;
+  keySchema: string;
+  keyConfig: string;
+  keyOtherDollar: string;
+  keyVariable: string;
+  configTitle: string;
+  configDesc: string;
+  thField: string;
+  thValues: string;
+  thDefault: string;
+  thBehaviour: string;
+  fieldProvider: string;
+  valueProfileName: string;
+  defaultProfile: string;
+  fieldProfile: string;
+  fieldVaultUrl: string;
+  configSdkNote: string;
+  providersTitle: string;
+  awsTitle: string;
+  awsDesc: string;
+  azureTitle: string;
+  azureDesc: string;
+  azureRules: string[];
+  priorityTitle: string;
+  priorityDesc: string;
+  priority1: string;
+  priority2: string;
+  priority3: string;
+  priorityExplain: string;
+  priorityGhaNote: string;
+  validationTitle: string;
+  validationDesc: string;
+  validationRules: string[];
+  multiEnvTitle: string;
+  multiEnvDesc: string;
+  multiEnvRun: string;
+  multiEnvGha: string;
+  multiEnvNaming: string;
+  errorsTitle: string;
+  thMessage: string;
+  thFix: string;
+  errInvalidNameFix: string;
+  errInvalidJsonFix: string;
+  errProviderFix: string;
+  errVaultMissingFix: string;
+  errVaultHttpsFix: string;
+  errVaultHostFix: string;
+  errProfileAzureFix: string;
+  errCaseFix: string;
+  relatedTitle: string;
+  relatedStart: string;
+  relatedExec: string;
+  relatedAzure: string;
+}
+
 export interface DocsTranslations {
+  gettingStartedGuide: GettingStartedGuideTranslations;
+  mapFileReference: MapFileReferenceTranslations;
   title: string;
   description: string;
   backToHome: string;
@@ -307,6 +416,7 @@ export interface DocsTranslations {
     | 'map-file'
     | 'cli-pull'
     | 'cli-push'
+    | 'cli-exec'
     | 'github-action'
     | 'sdk-dotnet'
     | 'sdk-python'
@@ -342,21 +452,8 @@ export interface DocsTranslations {
   sidebarGhaAzure: string;
   sidebarGhaInputs: string;
   // Overview
-  overviewTitle: string;
-  overviewDesc: string;
-  overviewProblem: string;
-  overviewSolution: string;
   // Requirements
-  reqTitle: string;
-  reqNode: string;
-  reqAws: string;
-  reqAzure: string;
-  reqAwsNote: string;
-  reqAzureNote: string;
-  reqDownload: string;
-  reqInstallGuide: string;
   // Installation
-  installTitle: string;
   // AWS setup
   awsSetupTitle: string;
   awsSetupIntro: string;
@@ -397,54 +494,25 @@ export interface DocsTranslations {
   azureSetupVerifySuccess: string;
   azureSetupVerifySdk: string;
   // Mapping file
-  mapTitle: string;
-  mapIntro: string;
-  mapCalloutStructure: string;
-  mapCalloutKey: string;
-  mapCalloutValue: string;
-  mapBasicTitle: string;
-  mapBasicDesc: string;
-  mapBasicGenerates: string;
-  mapConfigTitle: string;
-  mapConfigDesc: string;
-  mapConfigOptionsTitle: string;
-  mapThKey: string;
-  mapThType: string;
   mapThDefault: string;
   mapThDescription: string;
-  mapProviderDesc: string;
-  mapVaultUrlDesc: string;
-  mapProfileDesc: string;
-  mapAwsProfileTitle: string;
-  mapAwsProfileDesc: string;
-  mapAwsProfileExplain: string;
-  mapAzureTitle: string;
-  mapAzureDesc: string;
-  mapAzureWarningTitle: string;
-  mapAzureWarningDesc: string;
-  mapDifferencesTitle: string;
-  mapThEmpty: string;
-  mapThAwsSsm: string;
-  mapThAzureKv: string;
-  mapSecretPathFormat: string;
-  mapAwsPathFormat: string;
-  mapAzurePathFormat: string;
-  mapRequiredConfig: string;
-  mapAwsRequiredConfig: string;
-  mapAzureRequiredConfig: string;
-  mapOptionalConfig: string;
-  mapAuthentication: string;
-  mapAwsAuth: string;
-  mapAzureAuth: string;
-  mapMultiEnvTitle: string;
-  mapMultiEnvDesc: string;
-  mapMultiEnvThenPull: string;
-  mapOverrideTitle: string;
-  mapOverrideDesc: string;
-  mapOverrideComment1: string;
-  mapOverrideComment2: string;
-  mapOverrideComment3: string;
-  mapPriorityNote: string;
+  mapContentsTitle: string;
+  mapContentsIntro: string;
+  mapThStage: string;
+  mapThLimit: string;
+  mapContentsProvider: string;
+  mapContentsProviderLimit: string;
+  mapContentsEnvFile: string;
+  mapContentsEnvFileLimit: string;
+  mapContentsProcess: string;
+  mapContentsProcessLimit: string;
+  mapContentsResolveOnly: string;
+  mapContentsWriterDesc: string;
+  mapContentsRoundTrip: string;
+  mapContentsUnrepresentableTitle: string;
+  mapContentsUnrepresentableDesc: string;
+  mapContentsExpansionTitle: string;
+  mapContentsExpansionDesc: string;
   // Pull command
   pullTitle: string;
   pullDesc: string;
@@ -462,6 +530,85 @@ export interface DocsTranslations {
   pullCommentAzureConfig: string;
   pullCommentAzureFlags: string;
   pullOutputTitle: string;
+  pullExecTitle: string;
+  pullExecDesc: string;
+  pullExecGuideLink: string;
+  // Exec command
+  execTitle: string;
+  execDesc: string;
+  execUsageTitle: string;
+  execSeparatorTitle: string;
+  execSeparatorDesc: string;
+  execSepComment1: string;
+  execSepComment2: string;
+  execSepComment3: string;
+  execSepComment4: string;
+  execOptions: string;
+  execOptMap: string;
+  execOptProfile: string;
+  execOptProvider: string;
+  execOptVault: string;
+  execOptionsOrderDesc: string;
+  execRejectedDesc: string;
+  execExamples: string;
+  execCommentNpx: string;
+  execCommentMap: string;
+  execCommentAzure: string;
+  execCommentDocker: string;
+  execPackageJsonDesc: string;
+  execOutputTitle: string;
+  execOutputDesc: string;
+  execUseCasesTitle: string;
+  execUseCasesDesc: string;
+  execUcLocalstackTitle: string;
+  execUcLocalstackDesc: string;
+  execUcLocalstackComposeDesc: string;
+  execUcLocalstackDockerDesc: string;
+  execUcLocalstackExamplesDesc: string;
+  execUcTestsTitle: string;
+  execUcTestsDesc: string;
+  execUcTestsNote: string;
+  execUcMigrationsTitle: string;
+  execUcMigrationsDesc: string;
+  execUcTerraformTitle: string;
+  execUcTerraformDesc: string;
+  execUcTerraformNote: string;
+  execUcDevTitle: string;
+  execUcDevDesc: string;
+  execUcDevNote: string;
+  execUcGhaTitle: string;
+  execUcGhaDesc: string;
+  execUcGhaNote: string;
+  execUcChainTitle: string;
+  execUcChainDesc: string;
+  execUcChainNote: string;
+  execBehaviorTitle: string;
+  execExitTitle: string;
+  execExitDesc: string;
+  execThCode: string;
+  execThMeaning: string;
+  execThMessage: string;
+  execExitChild: string;
+  execExitSignal: string;
+  execExit125: string;
+  execExit126: string;
+  execExit127: string;
+  execExitNote: string;
+  execFailClosedTitle: string;
+  execFailClosedDesc: string;
+  execEnvTitle: string;
+  execEnvDesc: string;
+  execNoShellDesc: string;
+  execGhaTitle: string;
+  execGhaDesc: string;
+  execGhaNote: string;
+  execSignalsTitle: string;
+  execSignalsDesc: string;
+  execSandboxTitle: string;
+  execSandboxDesc: string;
+  execGuideLink: string;
+  examplesTitle: string;
+  execExamplesDesc: string;
   // Push command
   pushTitle: string;
   pushDesc: string;
@@ -486,6 +633,7 @@ export interface DocsTranslations {
   pushSingleOptValue: string;
   pushSingleOptPath: string;
   pushSingleOptMap: string;
+  pushSingleOptNoMapUpdate: string;
   pushSingleOptProvider: string;
   pushSingleOptVault: string;
   pushSingleOptProfile: string;
@@ -499,6 +647,10 @@ export interface DocsTranslations {
   ghaPullOnly: string;
   ghaBasicTitle: string;
   ghaMultiEnvTitle: string;
+  ghaExecTitle: string;
+  ghaExecDesc: string;
+  ghaExecNote: string;
+  ghaExecLink: string;
   ghaAzureTitle: string;
   ghaInputsTitle: string;
   ghaInputsSubtitle: string;
@@ -516,13 +668,64 @@ export interface DocsTranslations {
   ghaInputProvider: string;
   ghaInputVault: string;
   ghaOutputEnvPath: string;
+  ghaPrereqCheckout: string;
+  ghaPrereqPermissions: string;
+  ghaAwsTrustTitle: string;
+  ghaAwsTrustDesc: string;
+  ghaOidcSubjectNote: string;
+  ghaAwsPolicyTitle: string;
+  ghaAwsPolicyDesc: string;
+  ghaAwsKmsNote: string;
+  ghaWorkflowTitle: string;
+  ghaAwsMapDesc: string;
+  ghaOutputTitle: string;
+  ghaOutputDesc: string;
+  ghaOutputMaskNote: string;
+  ghaAzureFedTitle: string;
+  ghaAzureFedDesc: string;
+  ghaAzureRoleTitle: string;
+  ghaAzureRoleDesc: string;
+  ghaAzurePolicyNote: string;
+  ghaAzureMapDesc: string;
+  ghaAzureInputsNote: string;
+  ghaMultiEnvDesc: string;
+  ghaWhyTitle: string;
+  ghaWhyDesc: string;
+  ghaWhyRotationLabel: string;
+  ghaWhyRotation: string;
+  ghaWhyAuditLabel: string;
+  ghaWhyAudit: string;
+  ghaWhyKeysLabel: string;
+  ghaWhyKeys: string;
+  ghaWhyListLabel: string;
+  ghaWhyList: string;
+  ghaWhyWhenSecrets: string;
+  ghaErrorsTitle: string;
+  ghaErrorsDesc: string;
+  ghaErrMapTitle: string;
+  ghaErrMapFix: string;
+  ghaErrAssumeTitle: string;
+  ghaErrAssumeFix: string;
+  ghaErrNoCredsTitle: string;
+  ghaErrNoCredsFix: string;
+  ghaErrDeniedTitle: string;
+  ghaErrDeniedFix: string;
+  ghaErrExpiredTitle: string;
+  ghaErrExpiredFix: string;
+  ghaErrNotFoundTitle: string;
+  ghaErrNotFoundFix: string;
+  ghaErrVaultUrlTitle: string;
+  ghaErrVaultUrlFix: string;
+  ghaErrAzureDeniedTitle: string;
+  ghaErrAzureDeniedFix: string;
+  ghaErrProfileTitle: string;
+  ghaErrProfileFix: string;
+  ghaRelatedTitle: string;
+  ghaRelatedAws: string;
+  ghaRelatedAzure: string;
+  ghaRelatedMap: string;
+  ghaRelatedRepo: string;
   // Config priority
-  configPriorityTitle: string;
-  configPriorityDesc: string;
-  configPriority1: string;
-  configPriority2: string;
-  configPriority3: string;
-  configPriorityExplain: string;
   // SDKs
   sidebarSdks: string;
   sidebarSdkDotnet: string;
@@ -541,11 +744,77 @@ export interface DocsTranslations {
   sdkDotnetEnvLoadingDesc: string;
   sdkDotnetValidation: string;
   sdkDotnetValidationDesc: string;
-  sdkDotnetQuickStartConfig: string;
-  sdkDotnetQuickStartConfigDesc: string;
   sdkDotnetQuickStartResolve: string;
   sdkDotnetQuickStartResolveDesc: string;
   sdkDotnetFullDocs: string;
+  sdkDotnetExamplesDesc: string;
+  sdkDotnetPrereqTitle: string;
+  sdkDotnetPrereqDesc: string;
+  sdkDotnetPrereqAws: string;
+  sdkDotnetPrereqAzure: string;
+  sdkDotnetIamTitle: string;
+  sdkDotnetIamDesc: string;
+  sdkDotnetIamKms: string;
+  sdkDotnetRbacTitle: string;
+  sdkDotnetRbacDesc: string;
+  sdkDotnetRbacNote: string;
+  sdkDotnetMapTitle: string;
+  sdkDotnetMapDesc: string;
+  sdkDotnetMapAzureDesc: string;
+  sdkDotnetMapAzureNote: string;
+  sdkDotnetAspTitle: string;
+  sdkDotnetAspDesc: string;
+  sdkDotnetAspOutput: string;
+  sdkDotnetAspNote: string;
+  sdkDotnetDiTitle: string;
+  sdkDotnetDiDesc: string;
+  sdkDotnetWorkerTitle: string;
+  sdkDotnetWorkerDesc: string;
+  sdkDotnetWorkerOutput: string;
+  sdkDotnetWorkerHost: string;
+  sdkDotnetPrecTitle: string;
+  sdkDotnetPrecDesc: string;
+  sdkDotnetPrec1: string;
+  sdkDotnetPrec2: string;
+  sdkDotnetPrec3: string;
+  sdkDotnetPrec4: string;
+  sdkDotnetPrec5: string;
+  sdkDotnetPrec6: string;
+  sdkDotnetPrecEnvilder: string;
+  sdkDotnetPrecMissing: string;
+  sdkDotnetPerEnvDesc: string;
+  sdkDotnetExecTitle: string;
+  sdkDotnetExecDesc: string;
+  sdkDotnetExecKeys: string;
+  sdkDotnetExecLink: string;
+  sdkDotnetErrTitle: string;
+  sdkDotnetErrIntro: string;
+  sdkDotnetErrExpiredTitle: string;
+  sdkDotnetErrExpiredFix: string;
+  sdkDotnetErrSsoTitle: string;
+  sdkDotnetErrSsoFix: string;
+  sdkDotnetErrMissingTitle: string;
+  sdkDotnetErrMissingFix: string;
+  sdkDotnetErrDeniedTitle: string;
+  sdkDotnetErrDeniedAwsFix: string;
+  sdkDotnetErrDeniedAzureFix: string;
+  sdkDotnetErrAzureNameTitle: string;
+  sdkDotnetErrAzureNameFix: string;
+  sdkDotnetErrConfigTitle: string;
+  sdkDotnetErrMessageHeader: string;
+  sdkDotnetErrFixHeader: string;
+  sdkDotnetErrCfgFile: string;
+  sdkDotnetErrCfgVault: string;
+  sdkDotnetErrCfgProfileAzure: string;
+  sdkDotnetErrCfgVaultAws: string;
+  sdkDotnetErrCfgProfileMissing: string;
+  sdkDotnetBeforeTitle: string;
+  sdkDotnetBeforeDesc: string;
+  sdkDotnetRelatedTitle: string;
+  sdkDotnetRelatedMap: string;
+  sdkDotnetRelatedAws: string;
+  sdkDotnetRelatedAzure: string;
+  sdkDotnetRelatedExec: string;
   sdkPythonTitle: string;
   sdkPythonDesc: string;
   sdkPythonInstall: string;
@@ -560,6 +829,7 @@ export interface DocsTranslations {
   sdkPythonValidation: string;
   sdkPythonValidationDesc: string;
   sdkPythonFullDocs: string;
+  sdkPythonExamplesDesc: string;
   sdkNodejsTitle: string;
   sdkNodejsDesc: string;
   sdkNodejsInstall: string;
@@ -574,6 +844,7 @@ export interface DocsTranslations {
   sdkNodejsValidation: string;
   sdkNodejsValidationDesc: string;
   sdkNodejsFullDocs: string;
+  sdkNodejsExamplesDesc: string;
   // Pager
   pagerPrev: string;
   pagerNext: string;
@@ -598,6 +869,7 @@ export interface SponsorsTranslations {
   localstackAlt: string;
   awsCreditsAlt: string;
   awsCreditsLabel: string;
+  snykAlt: string;
 }
 
 export interface Translations {
@@ -607,12 +879,12 @@ export interface Translations {
   theme: ThemeTranslations;
   hero: HeroTranslations;
   trust: TrustTranslations;
+  proof: ProofTranslations;
   sponsors: SponsorsTranslations;
-  problemSolution: ProblemSolutionTranslations;
   howItWorks: HowItWorksTranslations;
   features: FeaturesTranslations;
-  demo: DemoTranslations;
   providers: ProvidersTranslations;
+  faq: FaqTranslations;
   gha: GhaTranslations;
   sdks: SdksTranslations;
   roadmap: RoadmapTranslations;

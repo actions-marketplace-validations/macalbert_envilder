@@ -1,4 +1,89 @@
-## [0.5.0] - 2026-06-26
+## [1.0.0] - 2026-10-27
+
+### Changed
+
+* **BREAKING: Map-file variable names follow the shared naming constraint**:
+  `MapFileParser.parse` now raises `ValueError` when a variable name does not
+  match `^[A-Za-z0-9_./-]+$` or is `__proto__`, the constraint in ADR-0008 that
+  the CLI, the GitHub Action and the published JSON Schema also enforce.
+  The same `envilder.json` is now valid, or invalid, on every surface. The
+  name is checked even when its value is not a string, and the message quotes
+  the name without echoing the mapped value. Dotted, hyphenated,
+  digit-leading and `/`-separated names (`Database/Password`) remain valid
+  ([#511](https://github.com/macalbert/envilder/issues/511))
+
+### Security
+
+* **Reject map-file mapping keys that a `.env` file cannot represent**:
+  Previously the SDK accepted names the CLI refuses, including names with
+  `=`, a line break or `U+2028`/`U+2029` that the CLI treats as an
+  injection vector ([#511](https://github.com/macalbert/envilder/issues/511))
+
+### Fixed
+
+* **Azure Key Vault references with `/` resolve the same secret as the CLI**:
+  A path-style value such as `/myapp/prod/db-password` was sent to Key Vault
+  as written, so it never matched the secret the CLI pushes under
+  `myapp-prod-db-password`. The SDK now applies the CLI's rule: `/` becomes
+  `-`, ignoring leading slashes, and anything else is sent as written
+
+### Documentation
+
+* **Document accepted map-file keys, values and limits**: The SDK README now
+  lists the accepted key grammar and the reasoning behind it, the secret
+  reference format per provider, and the limits on secret contents
+  (provider sizes, the one value a `.env` file cannot hold, operating-system
+  limits and variable expansion by other loaders)
+
+---
+
+## [0.6.0] - 2026-10-27
+
+### Changed
+
+* **BREAKING: Python 3.11 is the minimum supported version**: Python 3.10
+  reached end of life on 2026-10-01 and no longer receives security fixes.
+  Following the SDK dependency policy (ADR-0009: the engine floor is the
+  lowest in-support minor), the package now requires Python 3.11 or later,
+  drops the 3.10 classifier, and CI tests 3.11 and 3.13. Projects still on
+  Python 3.10 keep resolving 0.5.x
+
+### Dependencies
+
+* Drop `tomli` and `exceptiongroup` from the lockfile: they were only
+  installed on Python 3.10
+
+---
+
+## [0.5.2] - 2026-10-22
+
+### Security
+
+* Update `certifi` from 2026.2.25 to 2026.10.19 in the SDK lockfile to
+  resolve GHSA-6q48-6c7w-9gw2. `certifi` is a transitive dependency (via
+  `requests` in the Azure clients); the package's declared dependency ranges are
+  unchanged ([#609](https://github.com/macalbert/envilder/pull/609))
+
+### Dependencies
+
+* Bump `pyjwt` from 2.13.0 to 2.15.0 in the SDK lockfile
+  ([#534](https://github.com/macalbert/envilder/pull/534))
+* Bump `urllib3` from 2.7.0 to 2.8.0 in the SDK lockfile
+  ([#535](https://github.com/macalbert/envilder/pull/535))
+
+---
+
+## [0.5.1] - 2026-09-26
+
+### Documentation
+
+* **Link the PyPI page to the Python SDK docs**: The README's "Official
+  Website" link now points to `envilder.com/docs/sdks/python/` with UTM tags,
+  so visits from PyPI to envilder.com can be measured
+
+---
+
+## [0.5.0] - 2026-07-11
 
 ### Added
 
@@ -98,7 +183,6 @@
 * **Initial release**: Runtime library for loading secrets from AWS SSM Parameter Store or
   Azure Key Vault directly into Python applications
   ([#157](https://github.com/macalbert/envilder/pull/157))
-* `Envilder` facade: High-level entry point with `load()`, `resolve_file()`, and `from_map_file()` methods
 * `EnvilderClient`: Resolves secrets from a map-file and injects them into `os.environ`
 * `MapFileParser`: Parses `envilder.json` files with `$config` section and variable mappings
 * `SecretProviderFactory`: Creates the appropriate secret provider based on configuration

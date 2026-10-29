@@ -1,4 +1,63 @@
-## [0.4.0] - 2026-06-26
+## [1.0.0] - 2026-10-27
+
+### Changed
+
+* **BREAKING: Map-file variable names follow the shared naming constraint**:
+  `MapFileParser.parse` now throws `Error` when a variable name does not match
+  `^[A-Za-z0-9_./-]+$` or is `__proto__`, the constraint in ADR-0008 that
+  the CLI, the GitHub Action and the published JSON Schema also enforce.
+  The same `envilder.json` is now valid, or invalid, on every surface. The
+  name is checked even when its value is not a string, and the message quotes
+  the name without echoing the mapped value. Dotted, hyphenated,
+  digit-leading and `/`-separated names (`Database/Password`) remain valid
+  ([#511](https://github.com/macalbert/envilder/issues/511))
+
+### Security
+
+* **Reject map-file mapping keys that a `.env` file cannot represent**:
+  Previously the SDK accepted names the CLI refuses, including names with
+  `=`, a line break or `U+2028`/`U+2029` that the CLI treats as an
+  injection vector ([#511](https://github.com/macalbert/envilder/issues/511))
+
+### Documentation
+
+* **Document accepted map-file keys, values and limits**: The SDK README now
+  lists the accepted key grammar and the reasoning behind it, the secret
+  reference format per provider, and the limits on secret contents
+  (provider sizes, the one value a `.env` file cannot hold, operating-system
+  limits and variable expansion by other loaders)
+
+---
+
+## [0.4.2] - 2026-10-27
+
+### Fixed
+
+* **Azure Key Vault references with `/` resolve the same secret as the CLI**:
+  A path-style value such as `/myapp/prod/db-password` was sent to Key Vault
+  as written, so it never matched the secret the CLI pushes under
+  `myapp-prod-db-password`. The SDK now applies the CLI's rule: `/` becomes
+  `-`, ignoring leading slashes, and anything else is sent as written
+
+---
+
+## [0.4.1] - 2026-09-26
+
+### Documentation
+
+* **Add a Links section to the npm README**: The `@envilder/sdk` page on npm
+  now links to the changelog and to `envilder.com/docs/sdks/nodejs/` with UTM
+  tags, so visits from npm to envilder.com can be measured
+
+### Dependencies
+
+* Raise the minimum AWS SDK versions: `@aws-sdk/client-ssm` and
+  `@aws-sdk/credential-providers` now require `^3.1101.0` (previously
+  `^3.700.0`)
+
+---
+
+## [0.4.0] - 2026-07-11
 
 ### Added
 
@@ -14,10 +73,6 @@
   session token still throws `ExpiredCredentialsError`
   ([#379](https://github.com/macalbert/envilder/issues/379))
 
----
-
-## [0.3.1] - 2026-06-26
-
 ### Fixed
 
 * **Honor the `profile` option for the AWS region, not just credentials**:
@@ -29,6 +84,19 @@
   resolution order is `AWS_REGION` > `AWS_DEFAULT_REGION` > profile
   region > `us-east-1` fallback
   ([#382](https://github.com/macalbert/envilder/issues/382))
+
+---
+
+## [0.3.1] - 2026-06-25
+
+### Fixed
+
+* **AWS SSO / assumed-role profiles now resolve correctly**: `withProfile()`
+  and `$config.profile` now resolve credentials through the full AWS provider
+  chain (`fromNodeProviderChain`), including SSO token resolution. Previously
+  SSO and assumed-role profiles were silently ignored, falling back to the
+  default credentials
+  ([#364](https://github.com/macalbert/envilder/issues/364))
 
 ---
 
@@ -81,6 +149,8 @@
 * **Initial release**: Node.js runtime SDK for loading secrets directly
   into `process.env` from a map file. Supports AWS SSM Parameter Store and
   Azure Key Vault
+* **Batched AWS fetching**: Up to 10 SSM parameters per request
+  ([#170](https://github.com/macalbert/envilder/pull/170))
 * **Envilder facade**: `load()`, `resolveFile()`, `fromMapFile()` fluent
   builder for one-liner or fine-grained secret loading
 * **EnvilderClient**: Core resolver with `resolveSecrets()` and

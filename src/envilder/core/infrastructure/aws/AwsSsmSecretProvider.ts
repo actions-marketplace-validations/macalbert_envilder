@@ -34,7 +34,6 @@ export class AwsSsmSecretProvider implements ISecretProvider {
   }
 
   async getSecret(name: string): Promise<string | undefined> {
-    await this.logIdentity();
     try {
       const command = new GetParameterCommand({
         Name: name,
@@ -64,7 +63,6 @@ export class AwsSsmSecretProvider implements ISecretProvider {
   }
 
   async setSecret(name: string, value: string): Promise<void> {
-    await this.logIdentity();
     const command = new PutParameterCommand({
       Name: name,
       Value: value,

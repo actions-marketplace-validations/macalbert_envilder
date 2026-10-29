@@ -23,11 +23,17 @@ const localizedDocsPages = docsRouteManifest.flatMap((route) =>
     };
   }),
 );
+const englishDocsPages = localizedDocsPages.filter(
+  (page) => page.lang === 'en',
+);
+const translatedDocsPages = localizedDocsPages.filter(
+  (page) => page.lang !== 'en',
+);
 const indexablePages = [
   { file: 'index.html', path: '/', lang: 'en' },
   { file: 'ca/index.html', path: '/ca/', lang: 'ca' },
   { file: 'es/index.html', path: '/es/', lang: 'es' },
-  ...localizedDocsPages,
+  ...englishDocsPages,
   { file: 'changelog/index.html', path: '/changelog/', lang: 'en' },
 ];
 
@@ -71,7 +77,9 @@ function getExpectedAlternateUrls(path: string): string[] {
   const route = localizedPath.endsWith('/')
     ? localizedPath
     : `${localizedPath}/`;
-  const languages = localizedLanguages(route);
+  const languages = route.startsWith('/docs/')
+    ? ['en']
+    : localizedLanguages(route);
   const languageUrls = languages.map((language) =>
     language === 'en' ? `${siteUrl}${route}` : `${siteUrl}/${language}${route}`,
   );
@@ -225,6 +233,37 @@ describe('Static website SEO', () => {
     expect(actual).toEqual(expected.sort());
   });
 
+  it('Should_NoindexTranslatedDocs_When_StaticSiteIsBuilt', () => {
+    // Arrange
+    const expected: string[] = [];
+
+    // Act
+    const actual = translatedDocsPages
+      .filter(
+        (page) =>
+          !readDistFile(page.file).includes(
+            '<meta name="robots" content="noindex,follow">',
+          ),
+      )
+      .map((page) => page.file);
+
+    // Assert
+    expect(actual).toEqual(expected);
+  });
+
+  it('Should_KeepEnglishDocsIndexable_When_StaticSiteIsBuilt', () => {
+    // Arrange
+    const expected: string[] = [];
+
+    // Act
+    const actual = englishDocsPages
+      .filter((page) => readDistFile(page.file).includes('name="robots"'))
+      .map((page) => page.file);
+
+    // Assert
+    expect(actual).toEqual(expected);
+  });
+
   it('Should_KeepRobotsAndNotFoundMetadata_When_StaticSiteIsBuilt', () => {
     // Arrange
     const expected = {
@@ -296,23 +335,40 @@ describe('Static website SEO', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('Should_DeferDemoMedia_When_HomePageIsBuilt', () => {
+  it('Should_MirrorVisibleFaqInStructuredData_When_HomePagesAreBuilt', () => {
     // Arrange
-    const expected = {
-      hasEagerSource: false,
-      hasAutoplay: false,
-      hasPoster: true,
-      hasPreloadNone: true,
-    };
+    const homePages = ['index.html', 'ca/index.html', 'es/index.html'];
+    const expected = homePages.map((file) => ({ file, matches: true }));
 
     // Act
-    const videoTag = getTags(readDistFile('index.html'), 'video')[0] ?? '';
-    const actual = {
-      hasEagerSource: /(?:^|\s)src="/.test(videoTag),
-      hasAutoplay: videoTag.includes('autoplay'),
-      hasPoster: videoTag.includes('poster="/Envilder-demo-poster.webp"'),
-      hasPreloadNone: videoTag.includes('preload="none"'),
-    };
+    const actual = homePages.map((file) => {
+      const html = readDistFile(file);
+      const visibleQuestions = [
+        ...html.matchAll(/<summary(?:\s[^>]*)?>([\s\S]*?)<\/summary>/g),
+      ].map((match) => match[1].trim());
+      const faqSchema = [
+        ...html.matchAll(
+          /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g,
+        ),
+      ]
+        .map((match) => JSON.parse(match[1]))
+        .find((schema) => schema['@type'] === 'FAQPage');
+      const schemaQuestions: string[] = (faqSchema?.mainEntity ?? []).map(
+        (question: { name: string }) => question.name,
+      );
+      const decode = (text: string) =>
+        text
+          .replace(/&#39;/g, "'")
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, '&');
+      return {
+        file,
+        matches:
+          schemaQuestions.length > 0 &&
+          JSON.stringify(visibleQuestions.map(decode)) ===
+            JSON.stringify(schemaQuestions),
+      };
+    });
 
     // Assert
     expect(actual).toEqual(expected);

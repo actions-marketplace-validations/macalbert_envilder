@@ -36,7 +36,7 @@ source of truth. This GitHub Action makes it easy to:
 - ☁️ **Supported providers** - Choose AWS or Azure and configure that provider's credentials and access
 - 🗺️ **Shared mapping contract** - Reuse the same `envilder.json` structure as the CLI and SDKs
 
-> 💡 **Learn more:** Visit [envilder.com](https://envilder.com) for complete documentation,
+> 💡 **Learn more:** Visit [envilder.com](https://envilder.com/docs/github-action/?utm_source=github&utm_medium=readme&utm_campaign=action) for complete documentation,
 > or check the [GitHub README](https://github.com/macalbert/envilder/blob/main/README.md)
 > for CLI usage, advanced features, and more examples.
 
@@ -144,7 +144,6 @@ Create a JSON file mapping environment variables to secret paths:
 
 ```json
 {
-  "$schema": "https://envilder.com/schema/map-file.v1.json",
   "DATABASE_URL": "/myapp/prod/database-url",
   "API_KEY": "/myapp/prod/api-key",
   "SECRET_TOKEN": "/myapp/prod/secret-token"
@@ -157,7 +156,6 @@ Use the optional `$config` section to declare the provider and vault URL:
 
 ```json
 {
-  "$schema": "https://envilder.com/schema/map-file.v1.json",
   "$config": {
     "provider": "azure",
     "vaultUrl": "https://my-vault.vault.azure.net"
@@ -211,7 +209,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: 🧱 Checkout
@@ -253,7 +251,7 @@ If your workflow uses `working-directory` for steps, remember that
 ```yaml
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./app  # Commands run here
@@ -299,7 +297,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
     steps:
@@ -336,7 +334,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         environment: [dev, staging, production]

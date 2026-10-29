@@ -1,7 +1,13 @@
 import 'reflect-metadata';
 import { execSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { mkdtemp, rm, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -12,11 +18,9 @@ import {
   PutParameterCommand,
   SSMClient,
 } from '@aws-sdk/client-ssm';
-import { DefaultAzureCredential } from '@azure/identity';
-import { SecretClient } from '@azure/keyvault-secrets';
+import type { SecretClient } from '@azure/keyvault-secrets';
 import { glob } from 'glob';
 import pc from 'picocolors';
-import { GenericContainer, type StartedTestContainer } from 'testcontainers';
 import {
   afterAll,
   afterEach,
@@ -32,17 +36,15 @@ import { Startup } from '../src/envilder/apps/cli/Startup';
 import { DispatchActionCommand } from '../src/envilder/core/application/dispatch/DispatchActionCommand';
 import type { DispatchActionCommandHandler } from '../src/envilder/core/application/dispatch/DispatchActionCommandHandler';
 import { TYPES } from '../src/envilder/core/types';
+import { LocalStackAzureContainer } from '../tests/support/LocalStackAzureContainer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
 const ssmClient = new SSMClient({});
 
-// Lowkey Vault (Azure Key Vault test double)
-const LOWKEY_VAULT_IMAGE = 'nagyesta/lowkey-vault:7.1.61';
-const LOWKEY_VAULT_PORT = 8443;
-const LOWKEY_VAULT_STARTUP_TIMEOUT_MS = 180_000;
-const LOWKEY_VAULT_TEST_TIMEOUT_MS = 30_000;
+// LocalStack for Azure (Azure Key Vault test double)
+const AZURE_TEST_TIMEOUT_MS = 30_000;
 
 describe('Envilder (E2E)', () => {
   // Unique ID per test run prevents race conditions between concurrent CI runs
@@ -135,6 +137,7 @@ describe('Envilder (E2E)', () => {
     expect(actual.code).toBe(0);
     expect(actual.output).toContain('--map');
     expect(actual.output).toContain('--envfile');
+    expect(actual.output).toContain('--no-map-update');
   });
 
   it('Should_GenerateEnvironmentFile_When_ValidArgumentsAreProvided', async () => {
@@ -197,6 +200,24 @@ describe('Envilder (E2E)', () => {
     // Assert
     expect(actual.code).not.toBe(0);
     expect(actual.output).toContain('error');
+  });
+
+  it('Should_RejectMapFile_When_KeyShadowsObjectPrototype', async () => {
+    // Arrange: raw JSON so `__proto__` is an own key, as JSON.parse yields it.
+    const protoMapPath = join(tempDir, `envilder-proto-${runId}.json`);
+    const protoEnvPath = join(tempDir, `proto-${runId}.env`);
+    await writeFile(protoMapPath, `{"__proto__":"${ssmPrefix}/Proto"}`);
+    const params = ['--map', protoMapPath, '--envfile', protoEnvPath];
+
+    // Act
+    const actual = await runCommand(envilder, params);
+
+    // Assert
+    expect(actual.code).not.toBe(0);
+    expect(actual.output).toContain(
+      'Unsupported environment variable name "__proto__"',
+    );
+    expect(existsSync(protoEnvPath)).toBe(false);
   });
 
   it('Should_ShowErrorMessage_When_NoMapFlagAndEnvilderJsonAbsent', async () => {
@@ -325,6 +346,88 @@ describe('Envilder (E2E)', () => {
     expect(ssmValue).toBe(value);
   });
 
+  it('Should_CreateEnvilderJson_When_PushSingleRunsWithoutMapFile', async () => {
+    // Arrange
+    const key = 'SINGLE_VARIABLE';
+    const isolatedDir = await mkdtemp(
+      join(tmpdir(), `envilder-e2e-single-map-${runId}-`),
+    );
+    onTestFinished(() => rm(isolatedDir, { recursive: true, force: true }));
+    const params = [
+      '--key',
+      key,
+      '--value',
+      'single-value-test',
+      '--secret-path',
+      singleSsmPath,
+    ];
+
+    // Act
+    const actual = await runCommand(envilder, params, { cwd: isolatedDir });
+
+    // Assert
+    expect(actual.code).toBe(0);
+    expect(actual.output).toContain('Created envilder.json');
+    expect(
+      JSON.parse(readFileSync(join(isolatedDir, 'envilder.json'), 'utf8')),
+    ).toEqual({
+      [key]: singleSsmPath,
+    });
+  });
+
+  it('Should_NotCreateMapFile_When_PushSingleUsesNoMapUpdate', async () => {
+    // Arrange
+    const isolatedDir = await mkdtemp(
+      join(tmpdir(), `envilder-e2e-single-no-map-${runId}-`),
+    );
+    onTestFinished(() => rm(isolatedDir, { recursive: true, force: true }));
+    const params = [
+      '--key',
+      'SINGLE_VARIABLE',
+      '--value',
+      'single-value-test',
+      '--secret-path',
+      singleSsmPath,
+      '--no-map-update',
+    ];
+
+    // Act
+    const actual = await runCommand(envilder, params, { cwd: isolatedDir });
+
+    // Assert
+    expect(actual.code).toBe(0);
+    expect(existsSync(join(isolatedDir, 'envilder.json'))).toBe(false);
+    expect(await GetParameterSsm(singleSsmPath)).toBe('single-value-test');
+  });
+
+  it('Should_AppendToExistingMapFile_When_PushSingleTargetsSameProvider', async () => {
+    // Arrange
+    const key = 'SINGLE_VARIABLE';
+    const isolatedDir = await mkdtemp(
+      join(tmpdir(), `envilder-e2e-single-append-${runId}-`),
+    );
+    onTestFinished(() => rm(isolatedDir, { recursive: true, force: true }));
+    const mapPath = join(isolatedDir, 'envilder.json');
+    writeFileSync(mapPath, '{\n    "OTHER_VARIABLE": "/other/path"\n}\n');
+    const params = [
+      '--key',
+      key,
+      '--value',
+      'single-value-test',
+      '--secret-path',
+      singleSsmPath,
+    ];
+
+    // Act
+    const actual = await runCommand(envilder, params, { cwd: isolatedDir });
+
+    // Assert
+    expect(actual.code).toBe(0);
+    expect(readFileSync(mapPath, 'utf8')).toBe(
+      `{\n    "OTHER_VARIABLE": "/other/path",\n    "${key}": "${singleSsmPath}"\n}\n`,
+    );
+  });
+
   it('Should_SuccessfullyPushAllVariables_When_AllParametersAreValid', async () => {
     // Arrange
     const ssmParams = readMappings(mapFilePath);
@@ -353,47 +456,61 @@ describe('Envilder (E2E)', () => {
     }
   });
 
-  describe('Azure Key Vault', { timeout: LOWKEY_VAULT_TEST_TIMEOUT_MS }, () => {
-    let lowkeyVaultContainer: StartedTestContainer;
+  it('Should_StartNodeChildWithResolvedSecretAndPropagateExitCode_When_ExecModeIsUsed', async () => {
+    // Arrange
+    const execDir = await mkdtemp(
+      join(tmpdir(), `envilder-e2e-exec-${runId}-`),
+    );
+    onTestFinished(() => rm(execDir, { recursive: true, force: true }));
+    const existingEnvPath = join(execDir, '.env');
+    const existingEnvContent = 'TOKEN_SECRET=old\n';
+    await writeFile(existingEnvPath, existingEnvContent);
+    const existingEnvMtime = statSync(existingEnvPath).mtimeMs;
+    const filesBefore = readdirSync(execDir).sort();
+    const expected = `exec-value-${runId}`;
+    for (const ssmPath of Object.values(readMappings(mapFilePath))) {
+      await SetParameterSsm(ssmPath, expected);
+    }
+    const childScript =
+      "\"process.stdout.write('CHILD_TOKEN='+process.env.TOKEN_SECRET+'|');process.exit(3)\"";
+    const params = [
+      'exec',
+      '--map',
+      mapFilePath,
+      '--',
+      'node',
+      '-e',
+      childScript,
+    ];
+
+    // Act
+    const actual = await runCommand(envilder, params, { cwd: execDir });
+
+    // Assert
+    expect(actual.code).toBe(3);
+    expect(actual.output).toContain(`CHILD_TOKEN=${expected}|`);
+    expect(readFileSync(existingEnvPath, 'utf8')).toBe(existingEnvContent);
+    expect(statSync(existingEnvPath).mtimeMs).toBe(existingEnvMtime);
+    expect(readdirSync(execDir).sort()).toEqual(filesBefore);
+  });
+
+  describe('Azure Key Vault', { timeout: AZURE_TEST_TIMEOUT_MS }, () => {
+    let localStackAzure: LocalStackAzureContainer;
     let azureVaultUrl: string;
-    let lowkeyVaultHost: string;
+    let azureVaultHost: string;
     let azureSecretClient: SecretClient;
     let azureMapFilePath: string;
     let azureEnvFilePath: string;
     let noUrlMapPath: string;
-    let originalTlsReject: string | undefined;
 
     beforeAll(async () => {
       azureMapFilePath = join(tempDir, 'envilder-azure.json');
       azureEnvFilePath = join(tempDir, 'azure-validation.env');
       noUrlMapPath = join(tempDir, 'envilder-azure-no-url.json');
-      originalTlsReject = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-      // Self-signed cert on a local test container — safe to skip validation
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-      lowkeyVaultContainer = await new GenericContainer(LOWKEY_VAULT_IMAGE)
-        .withName(`lowkey-vault-cli-${randomUUID().slice(0, 8)}`)
-        .withExposedPorts(LOWKEY_VAULT_PORT, 8080)
-        .withEnvironment({
-          LOWKEY_ARGS: '--server.port=8443 --LOWKEY_VAULT_RELAXED_PORTS=true',
-        })
-        .withStartupTimeout(LOWKEY_VAULT_STARTUP_TIMEOUT_MS)
-        .start();
-
-      const host = lowkeyVaultContainer.getHost();
-      const port = lowkeyVaultContainer.getMappedPort(LOWKEY_VAULT_PORT);
-      const tokenPort = lowkeyVaultContainer.getMappedPort(8080);
-      lowkeyVaultHost = host;
-      azureVaultUrl = `https://${host}:${port}`;
-
-      // Point DefaultAzureCredential to Lowkey Vault's built-in token endpoint
-      process.env.AZURE_POD_IDENTITY_AUTHORITY_HOST = `http://${host}:${tokenPort}`;
-
-      azureSecretClient = new SecretClient(
-        azureVaultUrl,
-        new DefaultAzureCredential(),
-        { disableChallengeResourceVerification: true },
-      );
+      localStackAzure = await new LocalStackAzureContainer().start();
+      azureVaultUrl = localStackAzure.getVaultUrl();
+      azureVaultHost = localStackAzure.getVaultHost();
+      azureSecretClient = localStackAzure.createSecretClient();
 
       // Write dynamic map file with container's vault URL
       writeFileSync(
@@ -413,15 +530,7 @@ describe('Envilder (E2E)', () => {
     }, 240_000);
 
     afterAll(async () => {
-      if (lowkeyVaultContainer) {
-        await lowkeyVaultContainer.stop();
-      }
-      if (originalTlsReject === undefined) {
-        delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-      } else {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsReject;
-      }
-      delete process.env.AZURE_POD_IDENTITY_AUTHORITY_HOST;
+      await localStackAzure?.stop();
       if (azureMapFilePath && existsSync(azureMapFilePath)) {
         await unlink(azureMapFilePath);
       }
@@ -451,8 +560,7 @@ describe('Envilder (E2E)', () => {
       const container = Startup.build()
         .configureServices()
         .configureInfrastructure(config, {
-          allowedVaultHosts: [lowkeyVaultHost],
-          disableChallengeResourceVerification: true,
+          allowedVaultHosts: [azureVaultHost],
         })
         .create();
       const handler = container.get<DispatchActionCommandHandler>(
@@ -490,8 +598,7 @@ describe('Envilder (E2E)', () => {
       const container = Startup.build()
         .configureServices()
         .configureInfrastructure(config, {
-          allowedVaultHosts: [lowkeyVaultHost],
-          disableChallengeResourceVerification: true,
+          allowedVaultHosts: [azureVaultHost],
         })
         .create();
       const handler = container.get<DispatchActionCommandHandler>(
@@ -518,8 +625,7 @@ describe('Envilder (E2E)', () => {
       const container = Startup.build()
         .configureServices()
         .configureInfrastructure(config, {
-          allowedVaultHosts: [lowkeyVaultHost],
-          disableChallengeResourceVerification: true,
+          allowedVaultHosts: [azureVaultHost],
         })
         .create();
       const handler = container.get<DispatchActionCommandHandler>(
@@ -545,8 +651,7 @@ describe('Envilder (E2E)', () => {
       const container = Startup.build()
         .configureServices()
         .configureInfrastructure(config, {
-          allowedVaultHosts: [lowkeyVaultHost],
-          disableChallengeResourceVerification: true,
+          allowedVaultHosts: [azureVaultHost],
         })
         .create();
       const handler = container.get<DispatchActionCommandHandler>(
@@ -562,6 +667,43 @@ describe('Envilder (E2E)', () => {
       // Assert
       const secret = await azureSecretClient.getSecret('single-azure-test');
       expect(secret.value).toBe('single-azure-value');
+    });
+
+    it('Should_CreateMapFileWithAzureConfig_When_PushSingleHasMapOption', async () => {
+      // Arrange
+      const isolatedDir = await mkdtemp(
+        join(tmpdir(), `envilder-e2e-azure-single-map-${runId}-`),
+      );
+      onTestFinished(() => rm(isolatedDir, { recursive: true, force: true }));
+      const mapPath = join(isolatedDir, 'envilder.json');
+      const config = { provider: 'azure', vaultUrl: azureVaultUrl };
+      const container = Startup.build()
+        .configureServices()
+        .configureInfrastructure(config, {
+          allowedVaultHosts: [azureVaultHost],
+        })
+        .create();
+      const handler = container.get<DispatchActionCommandHandler>(
+        TYPES.DispatchActionCommandHandler,
+      );
+      const command = DispatchActionCommand.fromCliOptions({
+        key: 'SINGLE_VAR',
+        value: 'single-azure-map-value',
+        secretPath: 'single-azure-map-test',
+        map: mapPath,
+        mapTarget: config,
+      });
+
+      // Act
+      await handler.handleCommand(command);
+
+      // Assert
+      const secret = await azureSecretClient.getSecret('single-azure-map-test');
+      expect(secret.value).toBe('single-azure-map-value');
+      expect(JSON.parse(readFileSync(mapPath, 'utf8'))).toEqual({
+        $config: config,
+        SINGLE_VAR: 'single-azure-map-test',
+      });
     });
   });
 });

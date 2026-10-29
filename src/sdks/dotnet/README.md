@@ -44,6 +44,36 @@ var secrets = Env.ResolveFile("envilder.json");
 var dbPassword = secrets["DB_PASSWORD"];
 ```
 
+### Azure Key Vault
+
+Set the provider in the map file's `$config`; values are Key Vault secret names:
+
+```json
+{
+  "$schema": "https://envilder.com/schema/map-file.v1.json",
+  "$config": {
+    "provider": "azure",
+    "vaultUrl": "https://my-vault.vault.azure.net"
+  },
+  "DB_PASSWORD": "myapp-prod-db-password"
+}
+```
+
+Values are sent to Key Vault as written, except that slashes become hyphens: a path-style value
+such as `/myapp/prod/db-password` is read as `myapp-prod-db-password`, the same name the CLI pushes
+it under.
+
+The code is the same as for AWS. Credentials are resolved with `DefaultAzureCredential`
+(`az login`, managed identity, or environment variables):
+
+```csharp
+using Envilder;
+
+Env.Load("envilder.json");
+
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+```
+
 ### Async variants
 
 Every method has an async counterpart:
@@ -149,7 +179,8 @@ var config = new ConfigurationBuilder()
 var dbPassword = config["DB_PASSWORD"];
 ```
 
-Secrets with `/` in their paths are normalized to configuration sections:
+Variable names with `/` are normalized to configuration sections, as with
+AWS's own SSM configuration provider:
 
 ```json
 {
@@ -262,10 +293,35 @@ For Azure, add `vaultUrl`:
 }
 ```
 
+### Keys and values
+
+Keys follow the same rule as the CLI and the GitHub Action, so a key accepted by one is accepted by all:
+
+- **Keys** may only contain letters, digits, `_`, `.`, `-` and `/` (`^[A-Za-z0-9_./-]+$`); `__proto__`
+  is also rejected. `MapFileParser.Parse` throws `FormatException` for any other key, before any secret is fetched.
+  `/` builds `IConfiguration` sections (`Database/Password` → `Database:Password`).
+- **Values** are the secret identifiers in the provider (SSM parameter name or Key Vault secret
+  name) and must be JSON strings.
+- **Secret contents** are returned exactly as the provider stores them. `ResolveFile` / `Resolve` and `IConfiguration` keep them in
+  memory; `Load` / `Inject` write them to the process environment, where the operating system cannot
+  store `NUL` (`U+0000`) and Windows limits a variable to 32,767 characters.
+
+See [Keys and Values: What Is Accepted](https://github.com/macalbert/envilder#keys-and-values-what-is-accepted)
+for the full reference and the reasoning behind the rules.
+
+## Examples
+
+Runnable projects in [envilder-examples](https://github.com/macalbert/envilder-examples) resolve a map file
+against AWS SSM and Azure Key Vault (emulated with LocalStack and Lowkey Vault) and pass the values to
+containers, with no `.env` file:
+
+- [dotnet-testcontainers](https://github.com/macalbert/envilder-examples/tree/main/dotnet-testcontainers): xUnit v3 + Testcontainers
+- [dotnet-aspire](https://github.com/macalbert/envilder-examples/tree/main/dotnet-aspire): Aspire AppHost + `Aspire.Hosting.Testing`
+
 ## Links
 
 - [Changelog](https://github.com/macalbert/envilder/blob/main/docs/changelogs/sdk-dotnet.md)
-- [Official Website](https://envilder.com)
+- [Official Website](https://envilder.com/docs/sdks/dotnet/?utm_source=nuget&utm_medium=readme)
 
 ## License
 
